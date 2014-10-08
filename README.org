@@ -6,6 +6,7 @@
   
   This is a extension of Emacs that is a perspective of [[https://github.com/kiwanami/emacs-window-manager][e2wm.el]] for work in terminal.
 
+  [[file:img/demo.gif][demo]]
 
   
 * Feature
@@ -21,11 +22,11 @@
   
 *** If use package.el
 
-    2014/10/04 Now application
+    2014/10/09 Now application
     
 *** If use el-get.el
 
-    2014/10/04 Now application
+    2014/10/09 Now application
     
 *** If use auto-install.el
     
@@ -83,7 +84,7 @@
     - It's ='ask= (default) ... ask whether to put the result into help window.
     - It's =nil= ... always invoke the command in main window.
 
-    Also, =e2wm-term:help-guess-regexp= is used to guess whether the command is a help command.  
+    Also, =e2wm-term:help-guess-regexp= is used for a judgment of whether the command is a help command.  
     In default, the value matches the command includes "help" as a word like "git help status".  
 
     Also, the command includes "--help" option always is handled as a help command.  
@@ -100,7 +101,9 @@
 
 *** Pager
 
-    For the pager configuration in main window, use =e2wm-term:command-pager= / =e2wm-term:command-pager-variables=.  
+    For pager configuration in main window, use =e2wm-term:command-pager= / =e2wm-term:command-pager-variables=.  
+    Values of environment variables of =e2wm-term:command-pager-variables= are replaced
+    with =e2wm-term:command-pager= at a start of thie perspective.  
 
 *** Other
 
@@ -131,13 +134,13 @@
     You are able to access command histories by the following keys.  
     =prefix= means =e2wm:prefix-key=.  
 
-    - =C-c C-p= , =prefix p= ... move to a previous history
-    - =C-c C-n= , =prefix n= ... move to a next history
-    - =M-p= ... move to a previous history and past that into input window
-    - =M-n= ... move to a next history and past that into input window
-    - =prefix i= ... yank a current history
-    - =prefix g= ... grep histories
-    - =prefix a= ... show all histories ( for turn back from grep )
+    - =e2wm-term:history-move-previous= ( =C-c C-p= / =prefix p= ) ... move to a previous history
+    - =e2wm-term:history-move-next= ( =C-c C-n= / =prefix n= ) ... move to a next history
+    - =e2wm-term:input-history-previous= ( =M-p= ) ... move to a previous history and past that into input window
+    - =e2wm-term:input-history-next= ( =M-n= ) ... move to a next history and past that into input window
+    - =e2wm-term:history-send-pt-point= ( =prefix i= ) ... yank a current history
+    - =e2wm-term:history-grep= ( =prefix g= ) ... grep histories
+    - =e2wm-term:history-show-all= ( =prefix a= ) ... show all histories ( for turn back from grep )
 
 *** Control help window
 
@@ -145,12 +148,13 @@
     Then, for quit from help window, push =q=.  
     Also, there are the following keys to control a help window.  
 
-    - =prefix h= ... toggle on/off of display of a help window
-    - =prefix H= ... toggle on/off of maximized of a help window 
+    - =e2wm-term:dp-help-toggle-command= ( =prefix h= ) ... toggle on/off of display of a help window
+    - =e2wm-term:dp-help-maximize-toggle-command= ( =prefix H= ) ... toggle on/off of maximized of a help window
 
 *** Select terminal buffer
 
-    When the buffer of active backend is plural, you are able to select them by pushing =prefix t=.  
+    When the buffer of active backend is plural,
+    you are able to select them by =e2wm-term:dp-select-main-buffer= ( =prefix t= ).  
 
 *** Add backend
 
@@ -161,10 +165,32 @@
 
 *** Pager
 
-    
+    In general, terminal uses a interactive program like "less" command
+    as the pager program which is used for a browse of long results of command.  
+    But, such interactive program can not be controled from input window.  
+    So, this perspective uses "cat" command, which is not a interactive program, as pager in default.  
+    About that configuration, see "Pager" section in "Configuration" above.  
 
 *** Command termination in multiline
 
+    A command termination, ( e.g. ";" in /bin/sh ), can be skipped in terminal like the following.  
+
+    #+BEGIN_SRC sh
+~$ for e in `ls`
+> do
+> echo $e
+> done
+    #+END_SRC
+
+    But, you have to input command with a command termination in input window like the following.  
+
+    #+BEGIN_SRC sh
+for e in `ls`;
+do
+echo $e;
+done
+    #+END_SRC
+    
     
 * Tested On
   
