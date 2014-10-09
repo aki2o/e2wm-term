@@ -18,11 +18,11 @@ This is a extension of Emacs that is a perspective of ![e2wm.el](https://github.
 
 ### If use package.el
 
-2014/10/09 Now application
+2014/10/09 It's available by using melpa.
 
 ### If use el-get.el
 
-2014/10/09 Now application
+2014/10/09 It's available. But, master branch only.
 
 ### If use auto-install.el
 
