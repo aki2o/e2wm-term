@@ -5,7 +5,7 @@
 ;; Author: Hiroaki Otsu <ootsuhiroaki@gmail.com>
 ;; Keywords: tools, window manager
 ;; URL: https://github.com/aki2o/e2wm-term
-;; Version: 0.0.4
+;; Version: 0.0.5
 ;; Package-Requires: ((e2wm "1.2") (log4e "0.2.0") (yaxception "0.3.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -1240,28 +1240,37 @@ MARKER is marker for the entry point of main buffer."
   (wlf:show (e2wm:pst-get-wm) 'history))
 
 (defvar e2wm-term::help-timer nil)
-(defun* e2wm-term::help-show (cmdstr &key showp maximize selectp delay)
-  (when (and (stringp cmdstr)
-             (not (string= cmdstr ""))
-             (not (string= cmdstr e2wm-term::help-last-value)))
-    (when e2wm-term::help-timer
-      (cancel-timer e2wm-term::help-timer)
-      (setq e2wm-term::help-timer nil))
-    (if (numberp delay)
-        (setq e2wm-term::help-timer
-              (run-with-idle-timer delay
-                                   nil
-                                   'e2wm-term::help-show
-                                   cmdstr
-                                   :showp showp
-                                   :maximize maximize
-                                   :selectp selectp))
-      (e2wm:message "  #Term-Help show : %s" cmdstr)
-      (e2wm-term::help-value-update (shell-command-to-string cmdstr))
-      (setq e2wm-term::help-last-value cmdstr)
-      (when showp (e2wm-term::help-ensure-window))
-      (when maximize (e2wm-term::help-maximize))
-      (when selectp (e2wm:pst-window-select 'help)))))
+(defun* e2wm-term::help-show (cmd argstr &key showp maximize selectp delay)
+  (let ((cmdstr (when (stringp cmd)
+                  (concat cmd
+                          (or (when (stringp argstr) (concat " " argstr))
+                              "")))))
+    (when (and cmdstr
+               (not (string= cmdstr ""))
+               (not (string= cmdstr e2wm-term::help-last-value))
+               (or (and (stringp cmd)
+                        (not (string= cmd e2wm-term:command-helper)))
+                   (and (stringp argstr)
+                        (not (string-match (format "\\`%s " argstr) e2wm-term::help-last-value)))))
+      (when e2wm-term::help-timer
+        (cancel-timer e2wm-term::help-timer)
+        (setq e2wm-term::help-timer nil))
+      (if (numberp delay)
+          (setq e2wm-term::help-timer
+                (run-with-idle-timer delay
+                                     nil
+                                     'e2wm-term::help-show
+                                     cmd
+                                     argstr
+                                     :showp showp
+                                     :maximize maximize
+                                     :selectp selectp))
+        (e2wm:message "  #Term-Help show : %s" cmdstr)
+        (e2wm-term::help-value-update (shell-command-to-string cmdstr))
+        (setq e2wm-term::help-last-value cmdstr)
+        (when showp (e2wm-term::help-ensure-window))
+        (when maximize (e2wm-term::help-maximize))
+        (when selectp (e2wm:pst-window-select 'help))))))
 
 (defun* e2wm-term:help-command (cmd &key showp maximize selectp delay)
   "Put the result of `e2wm-term:command-helper' about CMD into help buffer.
@@ -1276,7 +1285,8 @@ If DELAY is number, set `run-with-idle-timer' for self."
   (if (or (not e2wm-term:command-helper)
           (not (string-match "\\`[^ \t\n]+\\'" e2wm-term:command-helper)))
       (yaxception:throw 'e2wm-term:err-invalid-helper)
-    (e2wm-term::help-show (concat e2wm-term:command-helper " " cmd)
+    (e2wm-term::help-show e2wm-term:command-helper
+                          cmd
                           :showp showp
                           :maximize maximize
                           :selectp selectp
@@ -1292,6 +1302,7 @@ If DELAY is number, set `run-with-idle-timer' for self."
   (e2wm:message "#Term-Help something : cmdstr[%s] showp[%s] maximize[%s] selectp[%s] delay[%s]"
                 cmdstr showp maximize selectp delay)
   (e2wm-term::help-show cmdstr
+                        nil
                         :showp showp
                         :maximize maximize
                         :selectp selectp
