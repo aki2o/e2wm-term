@@ -53,7 +53,7 @@ Download e2wm-term.el and put it on your load-path.
 ### Choice default backend
 
 Backend means a kind of feature as terminal shown in main window.  
-When this perspective is started at first, `e2wm-term:default-backend` is used (in default 'shell).  
+When this perspective is started at first, `e2wm-term:default-backend` is used ('shell in default).  
 For check available backend, do M-x `e2wm-term:show-backends`.  
 For the detail, do M-x `e2wm-term:describe-backend`.  
 
@@ -73,7 +73,7 @@ If you want to change it, add key to `e2wm-term:input-mode-map` like the followi
 
 this perspective handles the command to show a help by the value of `e2wm-term:help-guess-command`.  
 -   It's `t` &#x2026; always put the result into help window without the invocation in main window.
--   It's ='ask= (default) &#x2026; ask whether to put the result into help window.
+-   It's `ask` (default) &#x2026; ask whether to put the result into help window.
 -   It's `nil` &#x2026; always invoke the command in main window.
 
 Also, `e2wm-term:help-guess-regexp` is used for a judgment of whether the command is a help command.  
