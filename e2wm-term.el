@@ -5,7 +5,7 @@
 ;; Author: Hiroaki Otsu <ootsuhiroaki@gmail.com>
 ;; Keywords: tools, window manager
 ;; URL: https://github.com/aki2o/e2wm-term
-;; Version: 0.0.2
+;; Version: 0.0.3
 ;; Package-Requires: ((e2wm "1.2") (log4e "0.2.0") (yaxception "0.3.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -846,10 +846,7 @@ Else, do `e2wm-term:input-send-value' for `e2wm-term:input-current-value'."
   (self-insert-command n)
   (let ((inputed (buffer-string)))
     (when (string-match "\\(?:\\`\\||\\) *\\([^ \t\n]+\\) \\'" inputed)
-      (run-with-idle-timer 1
-                           nil
-                           'e2wm-term:help-command
-                           (match-string-no-properties 1 inputed)))))
+      (e2wm-term:help-command (match-string-no-properties 1 inputed) :delay 1))))
 
 (defun e2wm-term:input-insert-with-ac (n)
   "Do `self-insert-command' and `auto-complete'."
@@ -1198,32 +1195,40 @@ MARKER is marker for the entry point of main buffer."
 (defvar e2wm-term::help-last-value "")
 
 (defun e2wm-term:def-plugin-help (frame wm winfo)
-  (wlf:set-buffer wm (wlf:window-name winfo)
-                  (or (get-buffer e2wm-term::help-buffer-name)
-                      (with-current-buffer (generate-new-buffer e2wm-term::help-buffer-name)
-                        (e2wm-term:help-mode)
-                        (use-local-map (e2wm-term::keymap-emulate
-                                        :override-map view-mode-map
-                                        :emulate-map-sym 'e2wm-term:help-mode-map
-                                        :emulate-map-mode 'e2wm-term:help-mode))
-                        (buffer-disable-undo)
-                        (current-buffer))))
+  (e2wm-term::help-ensure-buffer wm winfo)
   (setq e2wm-term::help-last-value ""))
 
 (yaxception:deferror 'e2wm-term:err-invalid-helper
                      nil
                      "[E2WM-TERM] Invalid value of e2wm-term:command-helper")
 
+(defun e2wm-term::help-ensure-buffer (&optional wm winfo)
+  (let ((wm (or wm (e2wm:pst-get-wm)))
+        (wname (if winfo (wlf:window-name winfo) 'help)))
+    (or (wlf:get-buffer wm wname)
+        (let ((buf (or (get-buffer e2wm-term::help-buffer-name)
+                       (with-current-buffer (generate-new-buffer e2wm-term::help-buffer-name)
+                         (e2wm-term:help-mode)
+                         (use-local-map (e2wm-term::keymap-emulate
+                                         :override-map view-mode-map
+                                         :emulate-map-sym 'e2wm-term:help-mode-map
+                                         :emulate-map-mode 'e2wm-term:help-mode))
+                         (buffer-disable-undo)
+                         (current-buffer)))))
+          (wlf:set-buffer wm wname buf)
+          buf))))
+
 (defun e2wm-term::help-value-update (value)
   (e2wm:message "#Term-Help value update : %s" (truncate-string-to-width (or value "") 20 nil nil t))
-  (with-current-buffer (wlf:get-buffer (e2wm:pst-get-wm) 'help)
+  (with-current-buffer (e2wm-term::help-ensure-buffer)
     (let ((buffer-read-only nil))
       (erase-buffer)
       (when value (insert value))
       (goto-char (point-min)))))
 
 (defun e2wm-term::help-ensure-window ()
-  (when (not (wlf:get-window (e2wm:pst-get-wm) 'help))
+  (e2wm-term::help-ensure-buffer)
+  (when (not (ignore-errors (wlf:get-window (e2wm:pst-get-wm) 'help)))
     (wlf:show (e2wm:pst-get-wm) 'help)))
 
 (defun e2wm-term::help-maximize ()
@@ -1234,42 +1239,61 @@ MARKER is marker for the entry point of main buffer."
   (e2wm-term::help-ensure-window)
   (wlf:show (e2wm:pst-get-wm) 'history))
 
-(defun* e2wm-term:help-command (cmd &key showp maximize selectp)
+(defvar e2wm-term::help-timer nil)
+(defun* e2wm-term::help-show (cmdstr &key showp maximize selectp delay)
+  (when (and (stringp cmdstr)
+             (not (string= cmdstr ""))
+             (not (string= cmdstr e2wm-term::help-last-value)))
+    (when e2wm-term::help-timer
+      (cancel-timer e2wm-term::help-timer)
+      (setq e2wm-term::help-timer nil))
+    (if (numberp delay)
+        (setq e2wm-term::help-timer
+              (run-with-idle-timer delay
+                                   nil
+                                   'e2wm-term::help-show
+                                   cmdstr
+                                   :showp showp
+                                   :maximize maximize
+                                   :selectp selectp))
+      (e2wm:message "  #Term-Help show : %s" cmdstr)
+      (e2wm-term::help-value-update (shell-command-to-string cmdstr))
+      (setq e2wm-term::help-last-value cmdstr)
+      (when showp (e2wm-term::help-ensure-window))
+      (when maximize (e2wm-term::help-maximize))
+      (when selectp (e2wm:pst-window-select 'help)))))
+
+(defun* e2wm-term:help-command (cmd &key showp maximize selectp delay)
   "Put the result of `e2wm-term:command-helper' about CMD into help buffer.
 
 CMD is string as command.
 If SHOWP is non-nil, show the help window.
 If MAXIMIZE is non-nil, show the help window at a maximum.
-If SELECTP is non-nil, select the help window."
+If SELECTP is non-nil, select the help window.
+If DELAY is number, set `run-with-idle-timer' for self."
   (e2wm:message "#Term-Help command : %s" cmd)
   (if (or (not e2wm-term:command-helper)
           (not (string-match "\\`[^ \t\n]+\\'" e2wm-term:command-helper)))
       (yaxception:throw 'e2wm-term:err-invalid-helper)
-    (when (and (stringp cmd)
-               (not (string= cmd ""))
-               (not (string= cmd e2wm-term::help-last-value)))
-      (e2wm-term::help-value-update
-       (shell-command-to-string (concat e2wm-term:command-helper " " cmd)))
-      (setq e2wm-term::help-last-value cmd)
-      (when showp (e2wm-term::help-ensure-window))
-      (when maximize (e2wm-term::help-maximize))
-      (when selectp (e2wm:pst-window-select 'help)))))
+    (e2wm-term::help-show (concat e2wm-term:command-helper " " cmd)
+                          :showp showp
+                          :maximize maximize
+                          :selectp selectp
+                          :delay delay)))
 
-(defun* e2wm-term:help-something (cmdstr &key showp maximize selectp)
+(defun* e2wm-term:help-something (cmdstr &key showp maximize selectp delay)
   "Put the result of CMDSTR into help buffer.
 
 If SHOWP is non-nil, show the help window.
 If MAXIMIZE is non-nil, show the help window at a maximum.
-If SELECTP is non-nil, select the help window."
+If SELECTP is non-nil, select the help window.
+If DELAY is number, set `run-with-idle-timer' for self."
   (e2wm:message "#Term-Help something : %s" cmdstr)
-  (when (and (stringp cmdstr)
-             (not (string= cmdstr ""))
-             (not (string= cmdstr e2wm-term::help-last-value)))
-    (e2wm-term::help-value-update (shell-command-to-string cmdstr))
-    (setq e2wm-term::help-last-value cmdstr)
-    (when showp (e2wm-term::help-ensure-window))
-    (when maximize (e2wm-term::help-maximize))
-    (when selectp (e2wm:pst-window-select 'help))))
+  (e2wm-term::help-show cmdstr
+                        :showp showp
+                        :maximize maximize
+                        :selectp selectp
+                        :delay delay))
 
 (defun e2wm-term:help-quit ()
   "Normalize help window size and select input window."
