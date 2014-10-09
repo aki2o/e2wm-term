@@ -133,7 +133,7 @@ M-x `e2wm-term:dp` もしくは、M-x `e2wm:pst-change-command` して"term"を�
 
 ヘルプウィンドウのメジャーモード `e2wm-term:help-mode` は、 `view-mode` を継承しています。  
 ヘルプウィンドウの操作を止めるには、 `q` を押して下さい。  
-また、その他に以下のキーが定義されています。=prefix= は `e2wm:prefix-key` を意味します。  
+また、その他に以下のキーが定義されています。 `prefix` は `e2wm:prefix-key` を意味します。  
 -   `e2wm-term:dp-help-toggle-command` ( `prefix h` ) &#x2026; ヘルプウィンドウの表示/非表示の切り替え
 -   `e2wm-term:dp-help-maximize-toggle-command` ( `prefix H` ) &#x2026; ヘルプウィンドウの最大化の切り替え
 
