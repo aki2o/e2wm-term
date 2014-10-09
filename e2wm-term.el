@@ -5,7 +5,7 @@
 ;; Author: Hiroaki Otsu <ootsuhiroaki@gmail.com>
 ;; Keywords: tools, window manager
 ;; URL: https://github.com/aki2o/e2wm-term
-;; Version: 0.0.1
+;; Version: 0.0.2
 ;; Package-Requires: ((e2wm "1.2") (log4e "0.2.0") (yaxception "0.3.2"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -360,12 +360,16 @@ This value is one of the following symbols.
     (setq e2wm-term::last-buffer (nth 0 it))))
 
 (defun e2wm-term::ready-backend-buffer-p ()
-  (let ((mode (e2wm-term:$backend-mode (e2wm-term:current-backend)))
-        (wnd (wlf:get-window (e2wm:pst-get-wm) 'main))
-        (buf (wlf:get-buffer (e2wm:pst-get-wm) 'main)))
-    (and (window-live-p wnd) 
-         (buffer-live-p buf)
-         (eq (buffer-local-value 'major-mode buf) mode))))
+  (yaxception:$
+    (yaxception:try
+      (let ((mode (e2wm-term:$backend-mode (e2wm-term:current-backend)))
+            (wnd (wlf:get-window (e2wm:pst-get-wm) 'main))
+            (buf (wlf:get-buffer (e2wm:pst-get-wm) 'main)))
+        (and (window-live-p wnd) 
+             (buffer-live-p buf)
+             (eq (buffer-local-value 'major-mode buf) mode))))
+    (yaxception:catch 'error e
+      (e2wm-term--info "Not ready backend buffer : %s" (yaxception:get-text e)))))
 
 (yaxception:deferror 'e2wm-term:err-invalid-backend-property
                      nil
@@ -719,6 +723,7 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
                                          (when (< (point) currpt)
                                            (buffer-substring-no-properties (point) currpt))))
                           for path = (when path (replace-regexp-in-string "\\\\ " " " path))
+                          for path = (when path (expand-file-name path))
                           for path = (when path
                                        (if (string-match "\\`/" path)
                                            path
