@@ -5,8 +5,8 @@
 ;; Author: Hiroaki Otsu <ootsuhiroaki@gmail.com>
 ;; Keywords: tools, window manager
 ;; URL: https://github.com/aki2o/e2wm-term
-;; Version: 0.0.6
-;; Package-Requires: ((e2wm "1.2") (log4e "0.2.0") (yaxception "0.3.2"))
+;; Version: 0.1.0
+;; Package-Requires: ((e2wm "1.2") (log4e "0.2.0") (yaxception "1.0.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,185 +22,22 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;; 
+;;
 ;; This extension provides the frontend for work in terminal, which has the following features.
-;; 
+;;
 ;; - invoke command by not a newline key but a dedicated key for avoiding an unintended invocation.
 ;; - command can be written as multiline because a newline key just inputs a linefeed.
 ;; - show a help of the command, which you are typing to invoke, automatically into a dedicated window.
 ;; - show any help command result into not a terminal window but a dedicated window.
 ;; - show comand histories into a dedicated window and access them quickly.
-;; 
-;; For more infomation, see <https://github.com/aki2o/e2wm-term/blob/master/README.md>
-
-;;; Dependency:
-;; 
-;; - e2wm.el ( see <https://github.com/kiwanami/emacs-window-manager> )
-;; - yaxception.el ( see <https://github.com/aki2o/yaxception> )
-;; - log4e.el ( see <https://github.com/aki2o/log4e> )
-
-;;; Installation:
 ;;
-;; Put this to your load-path.
-;; And put the following lines in your .emacs or site-start.el file.
-;; 
-;; (require 'e2wm-term)
-
-;;; Configuration:
-;; 
-;; ;; Set default terminal
-;; (setq e2wm-term:default-backend 'shell)
-;; 
-;; ;; Make config suit for you. About the config item, see Customization or eval the following sexp.
-;; ;; (customize-group "e2wm-term")
-;; 
-
-;;; Customization:
-;; 
-;; [EVAL] (autodoc-document-lisp-buffer :type 'user-variable :prefix "e2wm-term:[^:]" :docstring t)
-;; `e2wm-term:default-backend'
-;; Symbol for backend used in default.
-;; `e2wm-term:use-migemo'
-;; Whether to use migemo.el.
-;; `e2wm-term:command-helper'
-;; String as command for help of command.
-;; `e2wm-term:command-pager'
-;; String as command for pager.
-;; `e2wm-term:command-pager-variables'
-;; List of string as environment variable for pager.
-;; `e2wm-term:command-cwd-checker'
-;; String as command for check of current work directory.
-;; `e2wm-term:command-cwd-updaters'
-;; List of string as command changes current work directory.
-;; `e2wm-term:command-special-chars'
-;; List of character has a special role in terminal.
-;; `e2wm-term:input-window-height'
-;; Number as the height of a input window.
-;; `e2wm-term:history-max-length'
-;; Number as the number of shown command history in history buffer.
-;; `e2wm-term:help-window-default-hide'
-;; Whether to hide help window at first.
-;; `e2wm-term:help-guess-command'
-;; Method to handle the inputed command seems to show help, e.g. "git help status".
-;; `e2wm-term:help-guess-regexp'
-;; Regexp to find the command handled by `e2wm-term:help-guess-command'.
-;; `e2wm-term:shell-use-history'
-;; Whether to load the entry of user history file into history buffer.
-;; `e2wm-term:shell-password-prompt-regexps'
-;; List of regexp to catch up on the fault of `comint-password-prompt-regexp'.
-;; 
-;;  *** END auto-documentation
-
-;;; API:
-;; 
-;; [EVAL] (autodoc-document-lisp-buffer :type 'function :prefix "e2wm-term:[^:]" :docstring t)
-;; `e2wm-term:regist-backend'
-;; Regist BACKEND.
-;; `e2wm-term:get-backend'
-;; Return backend of NAME.
-;; `e2wm-term:current-backend'
-;; Return current active backend.
-;; `e2wm-term:recipe'
-;; Not documented.
-;; `e2wm-term:winfo'
-;; Not documented.
-;; `e2wm-term:dp-init'
-;; Not documented.
-;; `e2wm-term:dp-leave'
-;; Not documented.
-;; `e2wm-term:dp-switch'
-;; Not documented.
-;; `e2wm-term:dp-popup'
-;; Not documented.
-;; `e2wm-term:dp-display'
-;; Not documented.
-;; `e2wm-term:def-plugin-input'
-;; Not documented.
-;; `e2wm-term:input-cwd-update'
-;; Update current work directory of input buffer by communicating main buffer process.
-;; `e2wm-term:input-header-update'
-;; Update `header-line-format' of input buffer using PATH.
-;; `e2wm-term:input-value-update'
-;; Update the contents of input buffer to VALUE.
-;; `e2wm-term:input-current-value'
-;; Return the contents of input buffer.
-;; `e2wm-term:input-send-value'
-;; Input VALUE into main buffer and return marker of the point before input VALUE.
-;; `e2wm-term:def-plugin-history'
-;; Not documented.
-;; `e2wm-term:history-highlight'
-;; Highlight entry of history buffer.
-;; `e2wm-term:history-sync'
-;; Move cursor of main buffer to the pointed entry of history buffer.
-;; `e2wm-term:history-add-on-current'
-;; Add entry on current buffer.
-;; `e2wm-term:history-add'
-;; Add entry into history buffer.
-;; `e2wm-term:def-plugin-help'
-;; Not documented.
-;; `e2wm-term:help-command'
-;; Put the result of `e2wm-term:command-helper' about CMD into help buffer.
-;; `e2wm-term:help-something'
-;; Put the result of CMDSTR into help buffer.
-;; `e2wm-term:shell-watch-for-password-prompt'
-;; Do `comint-watch-for-password-prompt' with replacement of `comint-password-prompt-regexp'.
-;; 
-;;  *** END auto-documentation
-;; [EVAL] (autodoc-document-lisp-buffer :type 'command :prefix "e2wm-term:[^:]" :docstring t)
-;; `e2wm-term:show-backends'
-;; Show available backends.
-;; `e2wm-term:describe-backend'
-;; Show configuration of backend of NAME.
-;; `e2wm-term:dp-help-toggle-command'
-;; Not documented.
-;; `e2wm-term:dp-help-maximize-toggle-command'
-;; Not documented.
-;; `e2wm-term:dp-select-main-buffer'
-;; Not documented.
-;; `e2wm-term:dp'
-;; Start perspective for work in terminal.
-;; `e2wm-term:input-invoke-command'
-;; Invoke the contents of input buffer.
-;; `e2wm-term:input-insert-with-help'
-;; Do `self-insert-command' and run `e2wm-term:help-command' about it if any command was inputed.
-;; `e2wm-term:input-insert-with-ac'
-;; Do `self-insert-command' and `auto-complete'.
-;; `e2wm-term:input-completion'
-;; Do completion of `e2wm-term:current-backend'.
-;; `e2wm-term:input-history-previous'
-;; Update the contents of input buffer to previous entry of history buffer.
-;; `e2wm-term:input-history-next'
-;; Update the contents of input buffer to next entry of history buffer.
-;; `e2wm-term:history-move-next'
-;; Move cursor to next entry in history buffer.
-;; `e2wm-term:history-move-previous'
-;; Move cursor to previous entry in history buffer.
-;; `e2wm-term:history-send-pt-point'
-;; Do `e2wm-term:input-value-update' from the pointed entry string of history buffer.
-;; `e2wm-term:history-show-all'
-;; Show all entry of history buffer.
-;; `e2wm-term:history-grep-abort'
-;; Exit from minibuffer of grepping entry of history buffer.
-;; `e2wm-term:history-grep'
-;; Grep entry of history buffer.
-;; `e2wm-term:help-quit'
-;; Normalize help window size and select input window.
-;; 
-;;  *** END auto-documentation
-;; [Note] Functions and variables other than listed above, Those specifications may be changed without notice.
-
-;;; Tested On:
-;; 
-;; - Emacs ... GNU Emacs 24.3.1 (i686-pc-linux-gnu, GTK+ Version 3.4.2) of 2013-08-22 on chindi02, modified by Debian
-;; - e2wm.el ... Version 1.2
-;; - yaxception.el ... Version 0.3.2
-;; - log4e.el ... Version 0.2.0
-
-
+;; For more infomation, see <https://github.com/aki2o/e2wm-term/blob/master/README.md>
+;;
 ;; Enjoy!!!
 
+;;; Code:
 
-(eval-when-compile (require 'cl))
+(require 'cl-lib)
 (require 'e2wm)
 (require 'yaxception)
 (require 'log4e)
@@ -327,7 +164,7 @@ This value is one of the following symbols.
   `(let ((it (when ,buffnm (get-buffer ,buffnm))))
      (when (buffer-live-p it) ,@body)))
 
-(defun* e2wm-term::show-message (msg &rest args)
+(cl-defun e2wm-term::show-message (msg &rest args)
   (apply 'message (concat "[E2WM-TERM] " msg) args)
   nil)
 
@@ -351,10 +188,10 @@ This value is one of the following symbols.
 
 (defvar e2wm-term::last-buffer nil)
 (defun e2wm-term::get-backend-buffers ()
-  (loop with mode = (e2wm-term:$backend-mode (e2wm-term:current-backend))
-        for b in (buffer-list)
-        if (eq (buffer-local-value 'major-mode b) mode)
-        collect b))
+  (cl-loop with mode = (e2wm-term:$backend-mode (e2wm-term:current-backend))
+           for b in (buffer-list)
+           if (eq (buffer-local-value 'major-mode b) mode)
+           collect b))
 
 (defun e2wm-term::get-backend-buffer ()
   (e2wm-term::awhen (e2wm-term::get-backend-buffers)
@@ -372,10 +209,8 @@ This value is one of the following symbols.
     (yaxception:catch 'error e
       (e2wm-term--info "Not ready backend buffer : %s" (yaxception:get-text e)))))
 
-(yaxception:deferror 'e2wm-term:err-invalid-backend-property
-                     nil
-                     "[E2WM-TERM] Failed regist backend for %s : invalid property"
-                     'name)
+(define-error 'e2wm-term:err-invalid-backend-property
+              "[E2WM-TERM] Failed regist backend invalid property")
 
 (defun e2wm-term:regist-backend (backend)
   "Regist BACKEND.
@@ -404,17 +239,17 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
   (interactive)
   (e2wm-term::show-message
    "Available backend : %s"
-   (mapconcat 'symbol-name (loop for k being hash-key in e2wm-term::backend-hash collect k) ", ")))
+   (mapconcat 'symbol-name (cl-loop for k being hash-key in e2wm-term::backend-hash collect k) ", ")))
 
 (defun e2wm-term:describe-backend (name)
   "Show configuration of backend of NAME."
   (interactive
    (list (completing-read
-          "Select backend: " (loop for k being hash-key in e2wm-term::backend-hash collect k) nil t nil '())))
+          "Select backend: " (cl-loop for k being hash-key in e2wm-term::backend-hash collect k) nil t nil '())))
   (let* ((b (e2wm-term:get-backend name))
          (props '("mode" "map" "starter" "invoker" "completion" "input-hook" "history-hook"))
          (prompt (concat "%s backend configuration ...\n"
-                         (mapconcat 'identity (loop for p in props collect (format "  %s: %%s" p)) "\n"))))
+                         (mapconcat 'identity (cl-loop for p in props collect (format "  %s: %%s" p)) "\n"))))
     (if (not (e2wm-term:$backend-p b))
         (e2wm-term::show-message "Invalid backend name : %s" name)
       (e2wm-term::show-message prompt
@@ -431,9 +266,7 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
   "Return backend of NAME."
   (gethash (if (stringp name) (intern name) name) e2wm-term::backend-hash))
 
-(yaxception:deferror 'e2wm-term:err-invalid-backend
-                     nil
-                     "[E2WM-TERM] Current backend is invalid")
+(define-error 'e2wm-term:err-invalid-backend "[E2WM-TERM] Current backend is invalid")
 
 (defun e2wm-term:current-backend ()
   "Return current active backend."
@@ -460,9 +293,9 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
 
 (defsubst e2wm-term::keymap-get-sequence-key-strokes (basestr startch endch)
   (e2wm-term--trace "start get sequence key strokes. basestr[%s] startch[%s] endch[%s]"
-                     basestr startch endch)
-  (loop for ch from (string-to-char startch) to (string-to-char endch)
-        collect (concat basestr (make-string 1 ch))))
+                    basestr startch endch)
+  (cl-loop for ch from (string-to-char startch) to (string-to-char endch)
+           collect (concat basestr (make-string 1 ch))))
 
 (defvar e2wm-term::keymap-regexp-sequence-key-stroke
   (rx-to-string `(and (group (not (any space)))
@@ -479,49 +312,49 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
       (insert (substitute-command-keys "\\<map>\\{map}"))
       (goto-char (point-min))
       (forward-line 3)
-      (loop while (not (eobp))
-            for e = (split-string (buffer-substring (point-at-bol) (point-at-eol)) "\t+")
-            for keystr = (replace-regexp-in-string
-                          "\\\"" "\\\\\"" (replace-regexp-in-string "\\\\" "\\\\\\\\" (pop e)))
-            for orgcmd = (when e (intern-soft (pop e)))
-            for cmdnm = (when (and orgcmd
-                                   (commandp orgcmd)
-                                   (not (eq orgcmd invoker)))
-                          (if not-proxy
-                              (symbol-name orgcmd)
-                            (concat "e2wm-term:proxy-" (symbol-name orgcmd))))
-            for cmd = (when cmdnm
-                        (or (e2wm-term::awhen (intern-soft cmdnm)
-                              (when (commandp it) it))
-                            (e2wm-term::keymap-def-proxy cmdnm mode orgcmd)))
-            ;; Keystroke is sequencial such as "1 .. 9"
-            if (and cmd (string-match e2wm-term::keymap-regexp-sequence-key-stroke keystr))
-            append (loop for keystr in (e2wm-term::keymap-get-sequence-key-strokes
-                                        (match-string-no-properties 2 keystr)
-                                        (match-string-no-properties 1 keystr)
-                                        (match-string-no-properties 3 keystr))
-                         collect `(,keystr ,cmd))
-            ;; Keystroke is normal
-            else if (and keystr cmd)
-            collect `(,keystr ,cmd)
-            do (forward-line)))))
+      (cl-loop while (not (eobp))
+               for e = (split-string (buffer-substring (point-at-bol) (pos-eol)) "\t+")
+               for keystr = (replace-regexp-in-string
+                             "\\\"" "\\\\\"" (replace-regexp-in-string "\\\\" "\\\\\\\\" (pop e)))
+               for orgcmd = (when e (intern-soft (pop e)))
+               for cmdnm = (when (and orgcmd
+                                      (commandp orgcmd)
+                                      (not (eq orgcmd invoker)))
+                             (if not-proxy
+                                 (symbol-name orgcmd)
+                               (concat "e2wm-term:proxy-" (symbol-name orgcmd))))
+               for cmd = (when cmdnm
+                           (or (e2wm-term::awhen (intern-soft cmdnm)
+                                 (when (commandp it) it))
+                               (e2wm-term::keymap-def-proxy cmdnm mode orgcmd)))
+               ;; Keystroke is sequencial such as "1 .. 9"
+               if (and cmd (string-match e2wm-term::keymap-regexp-sequence-key-stroke keystr))
+               append (cl-loop for keystr in (e2wm-term::keymap-get-sequence-key-strokes
+                                              (match-string-no-properties 2 keystr)
+                                              (match-string-no-properties 1 keystr)
+                                              (match-string-no-properties 3 keystr))
+                               collect `(,keystr ,cmd))
+               ;; Keystroke is normal
+               else if (and keystr cmd)
+               collect `(,keystr ,cmd)
+               do (forward-line)))))
 
-(defun* e2wm-term::keymap-emulate (&key override-map
+(cl-defun e2wm-term::keymap-emulate (&key override-map
                                         emulate-map-sym
                                         emulate-map-mode
                                         as-proxy)
   (e2wm-term--trace "start emulate keymap. override[%s] emulate-map-sym[%s] emulate-map-mode[%s] as-proxy[%s]"
                     (if override-map t nil) emulate-map-sym emulate-map-mode as-proxy)
   (let ((map (or override-map (make-sparse-keymap))))
-    (loop for (keystr cmd) in (e2wm-term::keymap-emulate-info
-                               emulate-map-sym emulate-map-mode (not as-proxy))
-          do (yaxception:$
-               (yaxception:try
-                 (e2wm-term--trace "define key. stroke[%s] cmd[%s]" keystr cmd)
-                 (define-key map (read-kbd-macro keystr) cmd))
-               (yaxception:catch 'error e
-                 (e2wm-term--warn "failed define key. stroke[%s] cmd[%s] : %s"
-                                  keystr cmd (yaxception:get-text e)))))
+    (cl-loop for (keystr cmd) in (e2wm-term::keymap-emulate-info
+                                  emulate-map-sym emulate-map-mode (not as-proxy))
+             do (yaxception:$
+                  (yaxception:try
+                    (e2wm-term--trace "define key. stroke[%s] cmd[%s]" keystr cmd)
+                    (define-key map (read-kbd-macro keystr) cmd))
+                  (yaxception:catch 'error e
+                    (e2wm-term--warn "failed define key. stroke[%s] cmd[%s] : %s"
+                                     keystr cmd (yaxception:get-text e)))))
     map))
 
 
@@ -558,9 +391,9 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
 
 (defvar e2wm-term::dp-next-main-buffer-p nil)
 (defun e2wm-term::dp-handle-buffer (buf)
-  (let* ((backends (loop for v being hash-value in e2wm-term::backend-hash collect v))
-         (modes (loop for b in backends collect (e2wm-term:$backend-mode b)))
-         (starters (loop for b in backends collect (e2wm-term:$backend-starter b)))
+  (let* ((backends (cl-loop for v being hash-value in e2wm-term::backend-hash collect v))
+         (modes (cl-loop for b in backends collect (e2wm-term:$backend-mode b)))
+         (starters (cl-loop for b in backends collect (e2wm-term:$backend-starter b)))
          (bmode (buffer-local-value 'major-mode buf)))
     (cond ((or e2wm-term::dp-next-main-buffer-p
                (memq bmode modes)
@@ -568,10 +401,10 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
            (setq e2wm-term::dp-next-main-buffer-p nil)
            (e2wm:with-advice
             (e2wm:pst-buffer-set 'main buf t nil))
-           (e2wm-term::awhen (loop for b in backends
-                                   if (or (eq this-command (e2wm-term:$backend-starter b))
-                                          (eq bmode (e2wm-term:$backend-mode b)))
-                                   return (e2wm-term:$backend-name b))
+           (e2wm-term::awhen (cl-loop for b in backends
+                                      if (or (eq this-command (e2wm-term:$backend-starter b))
+                                             (eq bmode (e2wm-term:$backend-mode b)))
+                                      return (e2wm-term:$backend-name b))
              (setq e2wm-term::current-backend-name it)
              (e2wm:pst-update-windows))
            t)
@@ -595,9 +428,9 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
     (setenv v e2wm-term:command-pager)))
 
 (defun e2wm-term::dp-pager-restore ()
-  (loop for k being hash-key in e2wm-term:dp-original-pager-hash
-        for v = (gethash k e2wm-term:dp-original-pager-hash)
-        do (setenv k v)))
+  (cl-loop for k being hash-key in e2wm-term:dp-original-pager-hash
+           for v = (gethash k e2wm-term:dp-original-pager-hash)
+           do (setenv k v)))
 
 (defun e2wm-term:dp-init ()
   (when (not e2wm-term::current-backend-name)
@@ -706,10 +539,10 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
 
 (defun e2wm-term::input-cwd-filter (proc res)
   (e2wm:message "#Term-Input cwd filter for %s : %s" (process-name proc) res)
-  (loop for cwd in (split-string res "\n")
-        if (and (not (string= cwd ""))
-                (file-directory-p cwd))
-        return (e2wm-term:input-header-update (setq e2wm-term::input-cwd cwd))))
+  (cl-loop for cwd in (split-string res "\n")
+           if (and (not (string= cwd ""))
+                   (file-directory-p cwd))
+           return (e2wm-term:input-header-update (setq e2wm-term::input-cwd cwd))))
 
 (defun e2wm-term::input-path-candidates ()
   (e2wm:message "#Term-Input path candidates")
@@ -717,30 +550,30 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
     (when (re-search-backward "/[^/'\"\n]+\\=" nil t)
       (forward-char 1))
     (let* ((currpt (point))
-           (dirpath (loop for re in '("\"" "'" "[^\\\\] +")
-                          for path = (save-excursion
-                                       (when (re-search-backward re nil t)
-                                         (goto-char (match-end 0))
-                                         (when (< (point) currpt)
-                                           (buffer-substring-no-properties (point) currpt))))
-                          for path = (when path (replace-regexp-in-string "\\\\ " " " path))
-                          for path = (when path (expand-file-name path))
-                          for path = (when path
-                                       (if (string-match "\\`/" path)
-                                           path
-                                         (concat (directory-file-name e2wm-term::input-cwd) "/" path)))
-                          if (and path (file-directory-p path))
-                          return (progn
-                                   (e2wm:message "  #Term-Input path candidates found : %s" path)
-                                   path))))
+           (dirpath (cl-loop for re in '("\"" "'" "[^\\\\] +")
+                             for path = (save-excursion
+                                          (when (re-search-backward re nil t)
+                                            (goto-char (match-end 0))
+                                            (when (< (point) currpt)
+                                              (buffer-substring-no-properties (point) currpt))))
+                             for path = (when path (replace-regexp-in-string "\\\\ " " " path))
+                             for path = (when path (expand-file-name path))
+                             for path = (when path
+                                          (if (string-match "\\`/" path)
+                                              path
+                                            (concat (directory-file-name e2wm-term::input-cwd) "/" path)))
+                             if (and path (file-directory-p path))
+                             return (progn
+                                      (e2wm:message "  #Term-Input path candidates found : %s" path)
+                                      path))))
       (when dirpath
-        (loop for e in (directory-files dirpath)
-              for fullpath = (concat dirpath e)
-              if (or (file-regular-p fullpath)
-                     (file-symlink-p fullpath)
-                     (and (file-directory-p fullpath)
-                          (not (string= e "."))))
-              collect (replace-regexp-in-string "[\"']" "" (shell-quote-argument e)))))))
+        (cl-loop for e in (directory-files dirpath)
+                 for fullpath = (concat dirpath e)
+                 if (or (file-regular-p fullpath)
+                        (file-symlink-p fullpath)
+                        (and (file-directory-p fullpath)
+                             (not (string= e "."))))
+                 collect (replace-regexp-in-string "[\"']" "" (shell-quote-argument e)))))))
 
 (defun e2wm-term:input-cwd-update ()
   "Update current work directory of input buffer by communicating main buffer process."
@@ -749,16 +582,16 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
     (let* ((proc (get-buffer-process (wlf:get-buffer (e2wm:pst-get-wm) 'main)))
            (orgbuf (when (processp proc) (process-buffer proc)))
            (orgfilter (when (processp proc) (process-filter proc))))
-    (when (processp proc)
-      (yaxception:$
-        (yaxception:try
-          (set-process-buffer proc nil)
-          (set-process-filter proc 'e2wm-term::input-cwd-filter)
-          (process-send-string proc (concat e2wm-term:command-cwd-checker "\n"))
-          (accept-process-output proc 0.2 nil t))
-        (yaxception:finally
-          (set-process-buffer proc orgbuf)
-          (set-process-filter proc orgfilter)))))))
+      (when (processp proc)
+        (yaxception:$
+          (yaxception:try
+            (set-process-buffer proc nil)
+            (set-process-filter proc 'e2wm-term::input-cwd-filter)
+            (process-send-string proc (concat e2wm-term:command-cwd-checker "\n"))
+            (accept-process-output proc 0.2 nil t))
+          (yaxception:finally
+            (set-process-buffer proc orgbuf)
+            (set-process-filter proc orgfilter)))))))
 
 (defun e2wm-term:input-header-update (path)
   "Update `header-line-format' of input buffer using PATH."
@@ -786,7 +619,7 @@ BACKEND is a struct of `e2wm-term:$backend' has the following properties.
          (ret (replace-regexp-in-string "\\s-+\\'" "" ret)))
     ret))
 
-(defun* e2wm-term:input-send-value (&key value invoke)
+(cl-defun e2wm-term:input-send-value (&key value invoke)
   "Input VALUE into main buffer and return marker of the point before input VALUE.
 
 If INVOKE is non-nil, run invoker of `e2wm-term:current-backend' after input VALUE."
@@ -994,24 +827,24 @@ Else, do `e2wm-term:input-send-value' for `e2wm-term:input-current-value'."
               (yaxception:$
                 (yaxception:try
                   (e2wm-term--trace "history hide entry start : %s" re)
-                  (loop initially (goto-char (point-min))
-                        with lastpt = 1
-                        while (re-search-forward re nil t)
-                        for mtext = (match-string-no-properties 0)
-                        ;; If match record is hidden already,
-                        if (get-text-property (point) 'invisible)
-                        ;; Go to head of next shown record or end of buffer.
-                        do (e2wm-term:history-move-next t t)
-                        ;; If match record is shown,
-                        else
-                        do (progn
-                             ;; Hide region from the end of last match record to the start of this record.
-                             (e2wm-term::set-visibility lastpt (e2wm-term::history-currpt) t)
-                             ;; Go to head of next shown record or end of buffer.
-                             (e2wm-term:history-move-next t t)
-                             (setq lastpt (point)))
-                        ;; At last, hide unmatch records on end of buffer.
-                        finally do (e2wm-term::set-visibility lastpt (point-max) t)))
+                  (cl-loop initially (goto-char (point-min))
+                           with lastpt = 1
+                           while (re-search-forward re nil t)
+                           for mtext = (match-string-no-properties 0)
+                           ;; If match record is hidden already,
+                           if (get-text-property (point) 'invisible)
+                           ;; Go to head of next shown record or end of buffer.
+                           do (e2wm-term:history-move-next t t)
+                           ;; If match record is shown,
+                           else
+                           do (progn
+                                ;; Hide region from the end of last match record to the start of this record.
+                                (e2wm-term::set-visibility lastpt (e2wm-term::history-currpt) t)
+                                ;; Go to head of next shown record or end of buffer.
+                                (e2wm-term:history-move-next t t)
+                                (setq lastpt (point)))
+                           ;; At last, hide unmatch records on end of buffer.
+                           finally do (e2wm-term::set-visibility lastpt (point-max) t)))
                 (yaxception:catch 'error e
                   (e2wm-term--error "failed history hide entry : %s\n%s"
                                     (yaxception:get-text e)
@@ -1067,13 +900,13 @@ MARKER is marker for the entry point of main buffer."
                          (when (> pt (point-min)) (1- pt)))))
            (minidx (1+ (- nextidx e2wm-term:history-max-length)))
            (minpt (when (> minidx 1)
-                    (loop with pt = (point-min)
-                          while (< pt (point-max))
-                          for nextpt = (e2wm-term::history-nextpt pt)
-                          for idx = (e2wm-term::history-index-at-point nextpt)
-                          if (= nextpt pt)  return nil
-                          if (= idx minidx) return nextpt
-                          else              do (setq pt nextpt)))))
+                    (cl-loop with pt = (point-min)
+                             while (< pt (point-max))
+                             for nextpt = (e2wm-term::history-nextpt pt)
+                             for idx = (e2wm-term::history-index-at-point nextpt)
+                             if (= nextpt pt)  return nil
+                             if (= idx minidx) return nextpt
+                             else              do (setq pt nextpt)))))
       (insert cmdstr "\n")
       (put-text-property pt (point) 'e2wm-term:history-index nextidx)
       (put-text-property pt (point) 'e2wm-term:history-marker marker)
@@ -1093,11 +926,11 @@ MARKER is marker for the entry point of main buffer."
   "Move cursor to next entry in history buffer."
   (interactive)
   (with-selected-window (wlf:get-window (e2wm:pst-get-wm) 'history)
-    (goto-char (loop with pt = (point)
-                     while (< pt (point-max))
-                     do (setq pt (e2wm-term::history-nextpt pt))
-                     if (not (get-text-property pt 'invisible)) return pt
-                     finally return (point-max)))
+    (goto-char (cl-loop with pt = (point)
+                        while (< pt (point-max))
+                        do (setq pt (e2wm-term::history-nextpt pt))
+                        if (not (get-text-property pt 'invisible)) return pt
+                        finally return (point-max)))
     (when (not not-highlight) (e2wm-term:history-highlight))
     (when (not not-sync) (e2wm-term:history-sync))))
 
@@ -1105,11 +938,11 @@ MARKER is marker for the entry point of main buffer."
   "Move cursor to previous entry in history buffer."
   (interactive)
   (with-selected-window (wlf:get-window (e2wm:pst-get-wm) 'history)
-    (goto-char (loop with pt = (point)
-                     while (> pt (point-min))
-                     do (setq pt (e2wm-term::history-prevpt pt))
-                     if (not (get-text-property pt 'invisible)) return pt
-                     finally return (point-min)))
+    (goto-char (cl-loop with pt = (point)
+                        while (> pt (point-min))
+                        do (setq pt (e2wm-term::history-prevpt pt))
+                        if (not (get-text-property pt 'invisible)) return pt
+                        finally return (point-min)))
     (when (not not-highlight) (e2wm-term:history-highlight))
     (when (not not-sync) (e2wm-term:history-sync))))
 
@@ -1199,9 +1032,7 @@ MARKER is marker for the entry point of main buffer."
   (e2wm-term::help-ensure-buffer wm winfo)
   (setq e2wm-term::help-last-value ""))
 
-(yaxception:deferror 'e2wm-term:err-invalid-helper
-                     nil
-                     "[E2WM-TERM] Invalid value of e2wm-term:command-helper")
+(define-error 'e2wm-term:err-invalid-helper "[E2WM-TERM] Invalid value of e2wm-term:command-helper")
 
 (defun e2wm-term::help-ensure-buffer (&optional wm winfo)
   (let ((wm (or wm (e2wm:pst-get-wm)))
@@ -1241,7 +1072,7 @@ MARKER is marker for the entry point of main buffer."
   (wlf:show (e2wm:pst-get-wm) 'history))
 
 (defvar e2wm-term::help-timer nil)
-(defun* e2wm-term::help-show (cmd argstr &key showp maximize selectp delay)
+(cl-defun e2wm-term::help-show (cmd argstr &key showp maximize selectp delay)
   (let ((cmdstr (when (stringp cmd)
                   (concat cmd
                           (or (when (stringp argstr) (concat " " argstr))
@@ -1273,7 +1104,7 @@ MARKER is marker for the entry point of main buffer."
         (when maximize (e2wm-term::help-maximize))
         (when selectp (e2wm:pst-window-select 'help))))))
 
-(defun* e2wm-term:help-command (cmd &key showp maximize selectp delay)
+(cl-defun e2wm-term:help-command (cmd &key showp maximize selectp delay)
   "Put the result of `e2wm-term:command-helper' about CMD into help buffer.
 
 CMD is string as command.
@@ -1293,7 +1124,7 @@ If DELAY is number, set `run-with-idle-timer' for self."
                           :selectp selectp
                           :delay delay)))
 
-(defun* e2wm-term:help-something (cmdstr &key showp maximize selectp delay)
+(cl-defun e2wm-term:help-something (cmdstr &key showp maximize selectp delay)
   "Put the result of CMDSTR into help buffer.
 
 If SHOWP is non-nil, show the help window.
@@ -1369,8 +1200,8 @@ If DELAY is number, set `run-with-idle-timer' for self."
            (active-prompt-p (with-current-buffer buff
                               (save-excursion
                                 (goto-char (point-max))
-                                (loop for (re func) in ac-rlc-prompts
-                                      if (looking-back re nil) return t)))))
+                                (cl-loop for (re func) in ac-rlc-prompts
+                                         if (looking-back re nil) return t)))))
       (when active-prompt-p
         (yaxception:$
           (yaxception:try
@@ -1393,19 +1224,19 @@ If DELAY is number, set `run-with-idle-timer' for self."
                              (file-exists-p fpath)
                              e2wm-term:shell-use-history)
                     (with-current-buffer (find-file-noselect fpath)
-                      (loop with overlines = (- (count-lines (point-min) (point-max))
-                                                e2wm-term:history-max-length)
-                            initially (progn (goto-char (point-min))
-                                             (when (> overlines 0)
-                                               (forward-line overlines)))
-                            while (not (eobp))
-                            for cmdstr = (thing-at-point 'line)
-                            for cmdstr = (replace-regexp-in-string "\\`\\s-+" "" cmdstr)
-                            for cmdstr = (replace-regexp-in-string "\\s-+\\'" "" cmdstr)
-                            for cmdstr = (replace-regexp-in-string " *; *" ";\n " cmdstr)
-                            collect cmdstr
-                            do (forward-line 1)
-                            finally do (kill-buffer))))))
+                      (cl-loop with overlines = (- (count-lines (point-min) (point-max))
+                                                   e2wm-term:history-max-length)
+                               initially (progn (goto-char (point-min))
+                                                (when (> overlines 0)
+                                                  (forward-line overlines)))
+                               while (not (eobp))
+                               for cmdstr = (thing-at-point 'line)
+                               for cmdstr = (replace-regexp-in-string "\\`\\s-+" "" cmdstr)
+                               for cmdstr = (replace-regexp-in-string "\\s-+\\'" "" cmdstr)
+                               for cmdstr = (replace-regexp-in-string " *; *" ";\n " cmdstr)
+                               collect cmdstr
+                               do (forward-line 1)
+                               finally do (kill-buffer))))))
     (dolist (e entries)
       (e2wm-term:history-add-on-current e nil))))
 
@@ -1417,10 +1248,10 @@ If matched entry is found, replace it with `comint-password-prompt-regexp' tempo
   (when (and (e2wm:managed-p)
              (e2wm-term::ready-backend-buffer-p)
              (not (string-match comint-password-prompt-regexp string)))
-    (loop for re in e2wm-term:shell-password-prompt-regexps
-          if (string-match re string)
-          return (let ((comint-password-prompt-regexp re))
-                   (comint-watch-for-password-prompt string)))))
+    (cl-loop for re in e2wm-term:shell-password-prompt-regexps
+             if (string-match re string)
+             return (let ((comint-password-prompt-regexp re))
+                      (comint-watch-for-password-prompt string)))))
 
 (add-to-list 'comint-output-filter-functions 'e2wm-term:shell-watch-for-password-prompt t)
 
